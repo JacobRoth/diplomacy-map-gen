@@ -15,7 +15,7 @@ ycoords = range(dim)
 
 for x in xcoords:
     for y in ycoords:
-        n =  noise.snoise2(x/period,y/period,base=offset)+random.random()*riderAmp
+        n =  noise.snoise2(x/period,y/period,base=offset) #+random.random()*riderAmp
         if n > sealevel:
             plt.plot(x,y,"go")
         else:
@@ -23,4 +23,3 @@ for x in xcoords:
 
 plt.show()
             
-

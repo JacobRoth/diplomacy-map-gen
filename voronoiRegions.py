@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy,math,random
 
 dim = 2048
-numPoints = 20
+numPoints = 15
 machine_epsilon = 0.1
 
 def zeroish(x):

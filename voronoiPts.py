@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy,math,random
 
-dim = 1024
-numPoints = 20
+dim = 4096
+numPoints = 30
 machine_epsilon = 0.1
 
 def zeroish(x):
@@ -10,6 +10,12 @@ def zeroish(x):
 
 def manhattanDist(pt1,pt2):
     return abs(pt1[0]-pt2[0])+abs(pt1[1]-pt2[1])
+    
+def chebyshevDist(pt1,pt2):
+    return(abs(pt1[0]-pt2[0]),abs(pt1[1]-pt2[1]))
+
+def funkDist(pt1,pt2):
+    return (math.sqrt(abs(pt1[0]-pt2[0]))+math.sqrt(abs(pt1[1]-pt2[1])))**2
 
 
 class voronoiPt:
@@ -19,7 +25,6 @@ class voronoiPt:
 
 def voronoiShade(pixel,voronoiPts):
     closestPoint = sorted(voronoiPts,key=lambda vp: manhattanDist(vp.pt,pixel))[0]
-
     return closestPoint.shade
 
 
