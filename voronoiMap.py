@@ -15,9 +15,7 @@ def main():
    # make up random data points
    np.random.seed(seedNum)
    points = np.random.rand(NUM_COUNTRIES, 2)
-   
-   # sorting doesn't seem to be working
-   sorted(points,key=lambda l:math.sqrt(l[0]**2 + l[1]**2), reverse=False)
+   points = sorted(points,key=lambda l:math.sqrt(l[0]**2 + l[1]**2), reverse=False)
 
    # compute Voronoi tesselation
    vor = Voronoi(points)
