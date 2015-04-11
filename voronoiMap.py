@@ -8,12 +8,11 @@ borrowing much code from http://stackoverflow.com/questions/20515554/colorize-vo
 """
 def main():
    NUM_COUNTRIES = 44
-   MIN_WATER_AREA = .8
+   MIN_WATER_AREA = .5
    seedNum = int(random.random()*2000)
    # make up random data points
    np.random.seed(seedNum)
    points = np.random.rand(NUM_COUNTRIES, 2)
-   #sorted(points)
 
    # compute Voronoi tesselation
    vor = Voronoi(points)
@@ -28,13 +27,13 @@ def main():
    # colorize
    i = 0
    NUM_PLAYERS = 8
-   colors = ['red','green','DarkRed','#EB70AA','#009922','#FF99FF', 'black', 'white']
+   colors = ['red','green','DarkRed','SandyBrown','Orchid','Gold', 'black', 'white']
    for region in regions:
        polygon = vertices[region]
        index = i%int(NUM_COUNTRIES/NUM_PLAYERS)
        fillColor = colors[index]
-       # fill in with water if polygon over certain size
-       if poly_area2D(polygon) > MIN_WATER_AREA:
+       # fill in with water if polygon over certain size and not supply center
+       if poly_area2D(polygon) > MIN_WATER_AREA and i%4 != 0:
          fillColor = 'blue'
        plt.fill(*zip(*polygon), alpha=0.4, color=fillColor)
        i += 1
@@ -46,7 +45,6 @@ def main():
        plt.plot(point[0],point[1],'ko')
    plt.xlim(vor.min_bound[0] - 0.1, vor.max_bound[0] + 0.1)
    plt.ylim(vor.min_bound[1] - 0.1, vor.max_bound[1] + 0.1)
-
    plt.show()
 
 """
