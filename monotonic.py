@@ -5,21 +5,20 @@ import math
 import matplotlib.pyplot as plt
 
 dim = 100
-period = 50
-sealevel = -0.3
-offset = random.randint(0,100)
-riderAmp = 0.2
+
+def monotonicFunc(order): #monotonically decreasing random
+    #function, of order (-order).
+    const = random.random()
+    if order<=0:
+        return (lambda x: float(const) )
+    else:
+        headFunc = lambda x: float(const)/float(x**order)
+        tailFunc = monotonicFunc(order-1)
+        return (lambda x: headFunc(x) + tailFunc(x))
 
 xcoords = range(dim)
 ycoords = range(dim)
 
-for x in xcoords:
-    for y in ycoords:
-        n =  noise.snoise2(x/period,y/period,base=offset)+random.random()*riderAmp
-        if n > sealevel:
-            plt.plot(x,y,"go")
-        else:
-            pass
 
 plt.show()
             
