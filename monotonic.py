@@ -5,7 +5,7 @@ import math
 import matplotlib.pyplot as plt
 import numpy
 
-dim = 100
+dim = 50
 
 colors = ['b','g','r','c','m','y','k']
 
