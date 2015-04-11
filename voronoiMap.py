@@ -7,10 +7,11 @@ import random
 borrowing much code from http://stackoverflow.com/questions/20515554/colorize-voronoi-diagram
 """
 def main():
+   NUM_COUNTRIES = 44
    seedNum = int(random.random()*2000)
    # make up data points
    np.random.seed(seedNum)
-   points = np.random.rand(15, 2)
+   points = np.random.rand(NUM_COUNTRIES, 2)
 
    # compute Voronoi tesselation
    vor = Voronoi(points)
@@ -23,11 +24,20 @@ def main():
    print vertices
 
    # colorize
+   i = 0
+   NUM_PLAYERS = 8
+   colors = ['red','green','blue','yellow','#0099FF','#FF99FF', 'black', 'white']
    for region in regions:
        polygon = vertices[region]
-       plt.fill(*zip(*polygon), alpha=0.4)
+       index = i%int(NUM_COUNTRIES/NUM_PLAYERS)
+       plt.fill(*zip(*polygon), alpha=0.4, color=colors[index])
+       i += 1
 
-   plt.plot(points[:,0], points[:,1], 'ko')
+   # add points for supply centers, just for now let's try every 4 pts
+   for i in range(len(points)):
+     if i%4 == 0:
+       point = points[i]
+       plt.plot(point[0],point[1],'ko')
    plt.xlim(vor.min_bound[0] - 0.1, vor.max_bound[0] + 0.1)
    plt.ylim(vor.min_bound[1] - 0.1, vor.max_bound[1] + 0.1)
 
