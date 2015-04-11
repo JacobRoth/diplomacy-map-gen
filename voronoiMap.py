@@ -13,6 +13,7 @@ def main():
    # make up random data points
    np.random.seed(seedNum)
    points = np.random.rand(NUM_COUNTRIES, 2)
+   #sorted(points)
 
    # compute Voronoi tesselation
    vor = Voronoi(points)
