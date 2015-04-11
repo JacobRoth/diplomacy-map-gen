@@ -8,8 +8,9 @@ borrowing much code from http://stackoverflow.com/questions/20515554/colorize-vo
 """
 def main():
    NUM_COUNTRIES = 44
+   MIN_WATER_AREA = .8
    seedNum = int(random.random()*2000)
-   # make up data points
+   # make up random data points
    np.random.seed(seedNum)
    points = np.random.rand(NUM_COUNTRIES, 2)
 
@@ -18,19 +19,23 @@ def main():
 
    # plot
    regions, vertices = voronoi_finite_polygons_2d(vor)
-   print "--"
-   print regions
-   print "--"
-   print vertices
+   #print "--"
+   #print regions
+   #print "--"
+   #print vertices
 
    # colorize
    i = 0
    NUM_PLAYERS = 8
-   colors = ['red','green','blue','yellow','#0099FF','#FF99FF', 'black', 'white']
+   colors = ['red','green','DarkRed','#EB70AA','#009922','#FF99FF', 'black', 'white']
    for region in regions:
        polygon = vertices[region]
        index = i%int(NUM_COUNTRIES/NUM_PLAYERS)
-       plt.fill(*zip(*polygon), alpha=0.4, color=colors[index])
+       fillColor = colors[index]
+       # fill in with water if polygon over certain size
+       if poly_area2D(polygon) > MIN_WATER_AREA:
+         fillColor = 'blue'
+       plt.fill(*zip(*polygon), alpha=0.4, color=fillColor)
        i += 1
 
    # add points for supply centers, just for now let's try every 4 pts
@@ -42,6 +47,31 @@ def main():
    plt.ylim(vor.min_bound[1] - 0.1, vor.max_bound[1] + 0.1)
 
    plt.show()
+
+"""
+c/o http://stackoverflow.com/questions/24467972/calculate-area-of-polygon-given-x-y-coordinates
+"""
+def polygonArea(corners):
+    n = len(corners) # of corners
+    area = 0.0
+    for i in range(n):
+        j = (i + 1) % n
+        area += corners[i][0] * corners[j][1]
+        area -= corners[j][0] * corners[i][1]
+    area = abs(area) / 2.0
+    return area
+
+"""
+c/o http://code.activestate.com/recipes/578275-2d-polygon-area/
+"""  
+def poly_area2D(poly):
+    total = 0.0
+    N = len(poly)
+    for i in range(N):
+        v1 = poly[i]
+        v2 = poly[(i+1) % N]
+        total += v1[0]*v2[1] - v1[1]*v2[0]
+    return abs(total/2)
 
 def voronoi_finite_polygons_2d(vor, radius=None):
   """
