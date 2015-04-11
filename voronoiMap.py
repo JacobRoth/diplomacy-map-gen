@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial import Voronoi
 import random
+import math
 
 """
 borrowing much code from http://stackoverflow.com/questions/20515554/colorize-voronoi-diagram
@@ -9,10 +10,12 @@ borrowing much code from http://stackoverflow.com/questions/20515554/colorize-vo
 def main():
    NUM_COUNTRIES = 44
    MIN_WATER_AREA = .5
+   NUM_PLAYERS = 8
    seedNum = int(random.random()*2000)
    # make up random data points
    np.random.seed(seedNum)
    points = np.random.rand(NUM_COUNTRIES, 2)
+   sorted(points,key=lambda l:math.sqrt(l[0]**2 + l[1]**2), reverse=False)
 
    # compute Voronoi tesselation
    vor = Voronoi(points)
@@ -26,11 +29,11 @@ def main():
 
    # colorize
    i = 0
-   NUM_PLAYERS = 8
    colors = ['red','green','DarkRed','SandyBrown','Orchid','Gold', 'black', 'white']
    for region in regions:
        polygon = vertices[region]
-       index = i%int(NUM_COUNTRIES/NUM_PLAYERS)
+       index = min(int(i//math.ceil(NUM_COUNTRIES//float(NUM_PLAYERS))),NUM_PLAYERS-1)
+       print index
        fillColor = colors[index]
        # fill in with water if polygon over certain size and not supply center
        if poly_area2D(polygon) > MIN_WATER_AREA and i%4 != 0:
