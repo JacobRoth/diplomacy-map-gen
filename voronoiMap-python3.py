@@ -10,7 +10,7 @@ def main():
    seedNum = int(random.random()*2000)
    # make up data points
    np.random.seed(seedNum)
-   points = np.random.rand(15, 2)
+   points = np.random.rand(100, 2)
 
    # compute Voronoi tesselation
    vor = Voronoi(points)
