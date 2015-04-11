@@ -8,14 +8,14 @@ import math
 borrowing much code from http://stackoverflow.com/questions/20515554/colorize-voronoi-diagram
 """
 def main():
-   NUM_COUNTRIES = 44
-   MIN_WATER_AREA = .5
-   NUM_PLAYERS = 8
+   NUM_COUNTRIES = 42
+   MIN_WATER_AREA = .04
+   NUM_PLAYERS = 7
    seedNum = int(random.random()*2000)
    # make up random data points
    np.random.seed(seedNum)
    points = np.random.rand(NUM_COUNTRIES, 2)
-   points = sorted(points,key=lambda l:math.sqrt(l[0]**2 + l[1]**2), reverse=False)
+   points = sorted(points,key=lambda l:math.sqrt(l[0]**2+l[1]**2), reverse=False)
 
    # compute Voronoi tesselation
    vor = Voronoi(points)
@@ -36,7 +36,8 @@ def main():
        print index
        fillColor = colors[index]
        # fill in with water if polygon over certain size and not supply center
-       if poly_area2D(polygon) > MIN_WATER_AREA and i%4 != 0:
+       print polygonArea(polygon,vor)
+       if polygonArea(polygon,vor) > MIN_WATER_AREA and i%4 != 0:
          fillColor = 'blue'
        plt.fill(*zip(*polygon), alpha=0.4, color=fillColor)
        i += 1
@@ -53,13 +54,20 @@ def main():
 """
 c/o http://stackoverflow.com/questions/24467972/calculate-area-of-polygon-given-x-y-coordinates
 """
-def polygonArea(corners):
+def polygonArea(corners, vor):
+    # calc the x and y min and max for the bounds
+    xmin = vor.min_bound[0] - 0.1
+    xmax = vor.max_bound[0] + 0.1
+    ymin = vor.min_bound[1] - 0.1
+    ymax = vor.max_bound[1] + 0.1
+    
     n = len(corners) # of corners
     area = 0.0
     for i in range(n):
         j = (i + 1) % n
-        area += corners[i][0] * corners[j][1]
-        area -= corners[j][0] * corners[i][1]
+        # bound the xmin and max the the seeable screen as defined by vor
+        area += min(xmax, max(xmin, corners[i][0])) * max(ymin, min(ymax, corners[j][1]))
+        area -= min(xmax, max(xmin, corners[j][0])) * max(ymin, min(ymax, corners[i][1]))
     area = abs(area) / 2.0
     return area
 
