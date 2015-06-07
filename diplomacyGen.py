@@ -17,20 +17,9 @@ class VoronoiPt:
         self.pt=pt
         self.shade=shade
 
-class SupplyCenter:
-    def __init__(self,pt,colorList):
-        self.pt=pt
-        self.colorList=colorList
-
 def voronoiShade(pixel,voronoiPts):
     closestPoint = sorted(voronoiPts,key=lambda vp: manhattanDist(vp.pt,pixel))[0]
     return closestPoint.shade
-
-def advVoronoiShade(pixel,voronoiPts,supplyCenters):
-    closestSC = sorted(supplyCenters,key=lambda sc: manhattanDist(sc.pt,pixel))[0]
-
-    return numpy.array(closestSC.colorList) * voronoiShade(pixel,voronoiPts)
-
 
 
 voronoiPts = [ VoronoiPt((random.randint(0,dim),random.randint(0,dim)),random.random()) for _ in range(numPoints) ]
@@ -45,7 +34,7 @@ for x in range(dim):
     print(x)
     for y in range(dim):
         #img[x][y] = numpy.array([0,voronoiShade((x,y),voronoiPts),0])
-        img[x][y] = advVoronoiShade((x,y),voronoiPts,supplyCenters) 
+        #img[x][y] = advVoronoiShade((x,y),voronoiPts,supplyCenters) 
 
 for sc in supplyCenters:
     plt.plot(sc.pt[1],sc.pt[0],'wo')
