@@ -1,10 +1,6 @@
 #quadtree space partitioning libTrueQuadSpacerary, by Jacob Roth
 # in this software we will be representing all points as two-element tuples (x,y)
-
 import random
-
-from PIL import Image
-from PIL import ImageDraw
 
 def weighted_choice(items,weights):
     assert(len(items)==len(weights))
@@ -13,15 +9,6 @@ def weighted_choice(items,weights):
         rnd -= weights[iii]
         if rnd < 0:
             return items[iii]
-
-def PILCoords(x,y,im):
-    '''takes an x,y coordinate in normal Euclidian space and translates
-    it to the image address coordinate on the PIL image im, assuming 0,0
-    is at the center of the PIL image.'''
-    imgwidth,imgheight = im.size
-    column = x+(imgwidth/2)
-    row = (imgheight/2)-y
-    return row,column
 
 class BuiltQuadSpace():
     # a quadtree region that is built up from the pixel level.
@@ -54,27 +41,14 @@ class BuiltQuadSpace():
             return self.bottomright.query(x,y)
 
     def randomPointWithin(self): 
-        '''returns a random point within the "True" region of the BuiltQuadSpace. The BuiltQuadSpace must have some true regions or this will crash.'''
+        '''returns a random point within the "True" region of the BuiltQuadSpace.'''
         quadrants = [self.topleft,self.topright,self.bottomleft,self.bottomright]
-        selectedQuadrant = weighted_choice(quadrants,[ quadrant.percentFull() for quadrant in quadrants]) # pick a quadrant at random, weighting based on how full that quadrant is (a quadrant with more full space should be picked more often. A FalseQuadUnit should never be picked (weight 0)).
-        return selectedQuadrant.randomPointWithin() # recur until we hit a TrueSubUnit that gives us a random point within itself. 
+        selectedQuadrant = weighted_choice(quadrants,[ quadrant.percentFull() for quadrant in quadrants])
+
     def percentFull(self):
         ''' returns what percent of the builtQuadSpace is True '''
         return (self.topleft.percentFull()+self.topright.percentFull()+self.bottomleft.percentFull()+self.bottomright.percentFull())/4
 
-    def PILRender(self,draw):
-        '''draws this BuiltQuadUnit onto the provided PIL draw space recursively'''
-        quadrants = [self.topleft,self.topright,self.bottomright,self.bottomleft]
-        for quadrant in quadrants:
-            quadrant.PILRender(draw)
-
-    def producePILImage(self):
-        '''return a Python Imaging Library image of myself.'''
-        im = Image.new("RGB",(self.size*2,self.size*2),"white")
-        draw= ImageDraw.Draw(im)
-        self.PILRender(draw)
-        del draw
-        return im
 
 
     @classmethod # make a constructor that works by returning 
@@ -116,8 +90,7 @@ class TrueQuadSpace(BuiltQuadSpace):
         return 1 # 100% true
     def randomPointWithin(self): 
         return random.uniform(self.x-self.size,self.x+self.size),random.uniform(self.y-self.size,self.y+self.size)
-    def PILRender(self,draw):
-        draw.rectangle([PILCoords(self.x-self.size,self.y-self.size,draw.im),PILCoords(self.x+self.size,self.y+self.size,draw.im)],fill="black")
+
 
 class FalseQuadSpace(BuiltQuadSpace):
     ''' represents a block on which the construction function is false'''
@@ -129,8 +102,6 @@ class FalseQuadSpace(BuiltQuadSpace):
         self.size=size
     def randomPointWithin(self): 
         raise TypeError("Attempted to get a random point inside a false quadspace. This means you did something wrong.")
-    def PILRender(self,draw):
-        pass # do nothing, we are a false space
 
     def percentFull(self):
         return 0 # 0% true
