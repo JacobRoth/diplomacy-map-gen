@@ -21,13 +21,13 @@ def PILCoords(x,y,im):
     imgwidth,imgheight = im.size
     column = x+(imgwidth/2)
     row = (imgheight/2)-y
-    return row,column
+    return column,row
 
 class BuiltQuadSpace():
     # a quadtree region that is built up from the pixel level.
 
-    def __init__(self,x,y,size,topleft,topright,bottomleft,bottomright):
-        '''construct a BuiltQuadSpace by explictily defining its subspaces'''
+    def __init__(self,x,y,size,topleft,topright,bottomleft,bottomright,color="black"):
+        '''construct a BuiltQuadSpace by explicitly defining its subspaces'''
         self.topleft = topleft
         self.topright = topright
         self.bottomleft = bottomleft
@@ -78,26 +78,26 @@ class BuiltQuadSpace():
 
 
     @classmethod # make a constructor that works by returning 
-    def constructRecursively(cls,x,y,size,constructionFunc,resolution=1):
+    def constructRecursively(cls,x,y,size,constructionFunc,resolution=1,color='black'):
         '''iterate over the entire square space defined by x,y, and size
         to construct a BuiltQuadSpace that defines where in that space
         constructionFunc is true. it's recommended that size be a power of
         two so we have integer sizes all the way down to 1.'''
         if size<=resolution: # we won't be recursing any further. Make a decision and return true or false
             if constructionFunc(x,y):
-                return TrueQuadSpace(x,y,size)
+                return TrueQuadSpace(x,y,size,color)
             else:
-                return FalseQuadSpace(x,y,size)
+                return FalseQuadSpace(x,y,size) # false space doesn't receive color data b/c it's invisible.
                 
 
         halfsize = size/2
-        topleft = BuiltQuadSpace.constructRecursively(x-halfsize,y+halfsize,halfsize,constructionFunc,resolution)
-        topright = BuiltQuadSpace.constructRecursively(x+halfsize,y+halfsize,halfsize,constructionFunc,resolution)
-        bottomleft = BuiltQuadSpace.constructRecursively(x-halfsize,y-halfsize,halfsize,constructionFunc,resolution)
-        bottomright = BuiltQuadSpace.constructRecursively(x+halfsize,y-halfsize,halfsize,constructionFunc,resolution)
+        topleft = BuiltQuadSpace.constructRecursively(x-halfsize,y+halfsize,halfsize,constructionFunc,resolution,color)
+        topright = BuiltQuadSpace.constructRecursively(x+halfsize,y+halfsize,halfsize,constructionFunc,resolution,color)
+        bottomleft = BuiltQuadSpace.constructRecursively(x-halfsize,y-halfsize,halfsize,constructionFunc,resolution,color)
+        bottomright = BuiltQuadSpace.constructRecursively(x+halfsize,y-halfsize,halfsize,constructionFunc,resolution,color)
 
         if all(map(lambda quadspace: isinstance(quadspace,TrueQuadSpace),[topleft,topright,bottomleft,bottomright])): #if all four quadrants are contiguous true, we are contiguous true
-            return TrueQuadSpace(x,y,size) 
+            return TrueQuadSpace(x,y,size,color) 
         elif all(map(lambda quadspace: isinstance(quadspace,TrueQuadSpace),[topleft,topright,bottomleft,bottomright])): #if all four quadrants are contiguous false, we are contiguous false 
             return FalseQuadSpace(x,y,size)
         else: # mixed subspace
@@ -105,10 +105,11 @@ class BuiltQuadSpace():
 
 class TrueQuadSpace(BuiltQuadSpace):
     ''' represents a block on which the construction function is true'''
-    def __init__(self,x,y,size):
+    def __init__(self,x,y,size,color='black'):
         self.x =x
         self.y=y
         self.size=size
+        self.color=color # interestingly, the TrueQuadSpace is the only place where self.color actually has to be set. That's because it's the only thing that ever gets drawn.
     def query(self,x,y):
         return True
     
@@ -117,7 +118,7 @@ class TrueQuadSpace(BuiltQuadSpace):
     def randomPointWithin(self): 
         return random.uniform(self.x-self.size,self.x+self.size),random.uniform(self.y-self.size,self.y+self.size)
     def PILRender(self,draw):
-        draw.rectangle([PILCoords(self.x-self.size,self.y-self.size,draw.im),PILCoords(self.x+self.size,self.y+self.size,draw.im)],fill="black")
+        draw.rectangle([PILCoords(self.x-self.size,self.y-self.size,draw.im),PILCoords(self.x+self.size,self.y+self.size,draw.im)],fill=self.color)
 
 class FalseQuadSpace(BuiltQuadSpace):
     ''' represents a block on which the construction function is false'''
