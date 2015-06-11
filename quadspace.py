@@ -42,12 +42,10 @@ class BuiltQuadSpace():
         
         if x > self.x+self.size or x < self.x-self.size or y > self.y+self.size or y < self.y-self.size:
             raise ValueError("Queried outside of bounds")
-
         if x<= self.x and y>self.y:
             return self.topleft.query(x,y)
         elif x> self.x and y>self.y:
             return self.topright.query(x,y)
-
         elif x<= self.x and y<=self.y:
             return self.bottomleft.query(x,y)
         elif x> self.x and y<=self.y:
@@ -75,6 +73,13 @@ class BuiltQuadSpace():
         self.PILRender(draw)
         del draw
         return im
+
+    def setColor(self,color):
+        ''' set all subunits to this color'''
+        self.topleft.setColor(color)
+        self.topright.setColor(color)
+        self.bottomleft.setColor(color)
+        self.bottomright.setColor(color)
 
 
     @classmethod # make a constructor that works by returning 
@@ -119,6 +124,8 @@ class TrueQuadSpace(BuiltQuadSpace):
         return random.uniform(self.x-self.size,self.x+self.size),random.uniform(self.y-self.size,self.y+self.size)
     def PILRender(self,draw):
         draw.rectangle([PILCoords(self.x-self.size,self.y-self.size,draw.im),PILCoords(self.x+self.size,self.y+self.size,draw.im)],fill=self.color)
+    def setColor(self,color):
+        self.color=color
 
 class FalseQuadSpace(BuiltQuadSpace):
     ''' represents a block on which the construction function is false'''
@@ -132,7 +139,7 @@ class FalseQuadSpace(BuiltQuadSpace):
         raise TypeError("Attempted to get a random point inside a false quadspace. This means you did something wrong.")
     def PILRender(self,draw):
         pass # do nothing, we are a false space
-
     def percentFull(self):
         return 0 # 0% true
-
+    def setColor(self,color):
+        pass # doesn't have color set.
