@@ -19,5 +19,5 @@ def voronoiSegmentation(bqs,numpts):
                 distsquareds = [ distsquared((x,y),vpt) for vpt in voronoiPoints ] # calculate the distance to every voronoi point from this x,y
                 return min(distsquareds)==distsquareds[iii] # if the minimum distance to a point is the distance to this point, return true.
                 # todo - make that less naive by iterating over voronoiPoints not our own and returning False as soon as we find one too big.
-        voronoiRegions.append(BuiltQuadSpace.constructRecursively(bqs.x,bqs.y,bqs.size,isInCurrentRegion,color=(random.randint(0,255),0,0) ))
+        voronoiRegions.append(BuiltQuadSpace.constructRecursively(bqs.x,bqs.y,bqs.size,isInCurrentRegion,color=(random.randint(0,255),random.randint(0,255),random.randint(0,255)) ))
     return voronoiRegions

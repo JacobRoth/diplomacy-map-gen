@@ -68,7 +68,7 @@ class BuiltQuadSpace():
 
     def producePILImage(self):
         '''return a Python Imaging Library image of myself.'''
-        im = Image.new("RGB",(self.size*2,self.size*2),"white")
+        im = Image.new("RGB",(self.size*2,self.size*2),None)
         draw= ImageDraw.Draw(im)
         self.PILRender(draw)
         del draw
@@ -143,3 +143,14 @@ class FalseQuadSpace(BuiltQuadSpace):
         return 0 # 0% true
     def setColor(self,color):
         pass # doesn't have color set.
+
+def produceCompositePILImage(listOfBQS):
+    ''' produces a composite image that is every item in the list of builtQuadSpaces draw onto it.'''
+    assert(all([ bqs.size==listOfBQS[0].size for bqs in listOfBQS])) # confirm that all images are the same size
+    im = Image.new("RGB",(listOfBQS[0].size*2,listOfBQS[0].size*2),None)
+    draw= ImageDraw.Draw(im)
+    for bqs in listOfBQS:
+        bqs.PILRender(draw)
+    del draw
+    return im
+
