@@ -75,7 +75,7 @@ class BuiltQuadSpace():
         return im
 
     def setColor(self,color):
-        ''' set all subunits to this color'''
+        ''' set this BuiltQuadSpace to this color, recursively'''
         self.topleft.setColor(color)
         self.topright.setColor(color)
         self.bottomleft.setColor(color)

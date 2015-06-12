@@ -1,7 +1,6 @@
 from quadspace import *
 from PIL import Image,ImageDraw
 import random
-from noise import snoise2 # todo - builtin library
 
 def distsquared(pt1,pt2):
     return (pt1[0]-pt2[0])**2 + (pt1[1]-pt2[1])**2
@@ -24,18 +23,9 @@ def voronoiSegmentation(bqs,numpts):
         voronoiRegions.append(BuiltQuadSpace.constructRecursively(bqs.x,bqs.y,bqs.size,isInCurrentRegion,color=None )) #we'll set color later
     return voronoiRegions
 
-def landWaterVoronoi(sz,num):
+def simpleVoronoiMap(sz,num):
     space = BuiltQuadSpace.constructRecursively(0,0,sz,lambda x,y:True,color="white")
     v = voronoiSegmentation(space,num)
     for item in v:
-        pointX, pointY = item.randomPointWithin()
-        elevation = snoise2(pointX/sz,pointY/sz)
-        if  elevation < 0:
-            item.setColor( "blue" ) # ocean
-        elif  elevation < 0.6:
-            item.setColor( (0,random.randint(100,255),0) ) # land
-        else:
-            item.setColor( "grey" ) # mountain
-
-
-    return produceCompositePILImage(v)
+        item.setColor( (random.randint(0,255),random.randint(0,255),random.randint(0,255)) )
+    produceCompositePILImage(v)
