@@ -1,0 +1,6 @@
+def randomPointWithin(boolArray):
+    '''takes a numpy array full of booleans and returns
+    a random row,column where the array is True. Must
+    be given a boolArray that contains a True somewhere.'''
+    assert(True in boolArray) # confirm that the boolArray contains True.
+    while (True): # note 
