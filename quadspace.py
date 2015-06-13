@@ -132,9 +132,9 @@ class FalseQuadSpace(BuiltQuadSpace):
     def __init__(self,x,y,size):
         self.x =x
         self.y=y
+        self.size=size
     def query(self,x,y):
         return False
-        self.size=size
     def randomPointWithin(self): 
         raise TypeError("Attempted to get a random point inside a false quadspace. This means you did something wrong.")
     def PILRender(self,draw):

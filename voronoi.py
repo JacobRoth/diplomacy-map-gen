@@ -18,22 +18,32 @@ def voronoiSegmentation(bqs,numpts):
             if not bqs.query(x,y):
                 return False # immediately determine that points outside the \parent\ region are invalid
             else:
+
+                '''
                 distsquareds = [ distsquared((x,y),vpt) for vpt in voronoiPoints ] # calculate the distance to every voronoi point from this x,y
                 return min(distsquareds)==distsquareds[iii] # if the minimum distance to a point is the distance to this point, return true.
-                # todo - make that less naive by iterating over voronoiPoints not our own and returning False as soon as we find one too big.
+                # todo - make that less naive by iterating over voronoiPoints not our own and returning False as soon as we find one too big.'''
+                
+                #now we are going to write the less naive version
+                distsquaredToCurrentPoint = distsquared((x,y),voronoiPoints[iii]) # distance to this point
+                for vpt in voronoiPoints[0:iii]+voronoiPoints[iii+1:]: #iterate over all voronoi points that are not the current point
+                    if distsquared((x,y),vpt) < distsquaredToCurrentPoint: # current point is not the closest point
+                        return False
+                return True # if no closer point found, we are in region
+
         voronoiRegions.append(BuiltQuadSpace.constructRecursively(bqs.x,bqs.y,bqs.size,isInCurrentRegion,color=None )) #we'll set color later
     return voronoiRegions
 
 def landWaterVoronoi(sz,num):
-    space = BuiltQuadSpace.constructRecursively(0,0,sz,lambda x,y:True,color="white")
+    space = BuiltQuadSpace.constructRecursively(0,0,sz,lambda x,y:True,color="white",resolution=4)
     v = voronoiSegmentation(space,num)
     for item in v:
         pointX, pointY = item.randomPointWithin()
         elevation = snoise2(pointX/sz,pointY/sz)
         if  elevation < 0:
-            item.setColor( "blue" ) # ocean
+            item.setColor( (0,0,random.randint(100,255)) ) # ocean (blue)
         elif  elevation < 0.6:
-            item.setColor( (0,random.randint(100,255),0) ) # land
+            item.setColor( (0,random.randint(100,255),0) ) # land (green)
         else:
             item.setColor( "grey" ) # mountain
 
