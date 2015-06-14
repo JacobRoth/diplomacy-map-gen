@@ -28,6 +28,17 @@ def voronoiSegmentation(boolArray, numpts):
                         return False
                 return True # if no closer point found, we are in region.
 
-        segments.append(numpy.fromfunction(numpy.vectorize(voronoiFunc),boolArray.shape))
+        segments.append(numpy.fromfunction(numpy.vectorize(voronoiFunc),boolArray.shape)) # i have no idea why that requires vectorize. I saw it on stack exchange.
     return segments
+
+def simpleColorfulImage(listOfBoolArrays):
+    '''takes a list of bool-array regions, assigns them random colors, and returns a composite image that has them all. All the bool-array regions must have the same array shape'''
+    assert(all(map(lambda boolArray: boolArray.shape == listOfBoolArrays[0].shape,listOfBoolArrays))) # confirm they all have the same shape.
+    rgbshape = (listOfBoolArrays[0].shape[0],listOfBoolArrays[0].shape[1],3) #same height and width as the bool but it has a color dimension.
+    compositeImage = numpy.zeros(rgbshape)  
+    for boolArray in listOfBoolArrays:
+        colorImage = numpy.dstack((boolArray,boolArray,boolArray))
+        randomRGB = numpy.array([ random.randint(0,255) for _ in range(3)])
+        compositeImage += colorImage * randomRGB
+    return compositeImage
 
