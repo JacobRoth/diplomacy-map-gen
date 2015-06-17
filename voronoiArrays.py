@@ -50,7 +50,7 @@ def colorRegion(boolArray,colorArray):
 def diploMap(shape, sealevel, mountainlevel, numPlayerCountries, totalCountries, regionsPerCountry):
     '''render an image of a diplomacy map. Note that totalCountries is the number of big country-sized spaces on the map, including water and mountain. Can generate for up to 7 players right now'''
     assert(numPlayerCountries <= 7)
-    possibleColors = [numpy.array([1.0,0,0]),numpy.array([0,1.0,0]),numpy.array([0,0,1.0]),numpy.array([1.0,1.0,0]),numpy.array([0,1.0,1.0]),numpy.array([1.0,0,1.0]) ] 
+    possibleColors = [numpy.array([1.0,0,0]),numpy.array([0,1.0,0]),numpy.array([1.0,1.0,0]),numpy.array([0,1.0,1.0]),numpy.array([1.0,0,1.0]),numpy.array([1.0,1.0,1.0]),numpy.array([1.0,0.5,0])] 
     diploMap = numpy.full(shape,True,bool) # numpy array representing the whole space.
     diploCanvas = numpy.zeros((shape[0],shape[1],3)) # create a color numpy array image that is the blank canvas we will draw everything on.
 
@@ -64,18 +64,23 @@ def diploMap(shape, sealevel, mountainlevel, numPlayerCountries, totalCountries,
     
     #now make the players' lands
     playerRegions = [ voronoiSegmentation(playerCountry,regionsPerCountry) for playerCountry in playerCountries ] # out of this we get a list of lists - the starting regions of players 0 thru numPlayerCountries-1
+    #now we draw the players' lands into the canvas 
+    for iii in range(len(playerRegions)): 
+        for region in playerRegions[iii]: # iterate over this player's regions
+            diploCanvas += colorRegion(region,possibleColors[iii]*random.random())
     
     
     #now we make neutral lands, including mountains and seas
     seaRegions = []
     neutralLandRegions = []
     mountainRegions = []
-    # gonna have to do the snoise stuff here.
+    neutralRegions = []
+    for bigSpace in neutralBigSpaces: 
+        neutralRegions.extend(voronoiSegmentation(bigSpace,totalCountries))
 
-    for iii in range(len(playerRegions)): #now we draw the players' lands into the canvas 
-        for region in playerRegions[iii]: # iterate over this player's regions
-            diploCanvas += colorRegion(region,possibleColors[iii])
-
+    #draw neutral lands/mountain/seas on canvas.
+    for neutralRegion in neutralRegions:
+        diploCanvas += colorRegion(neutralRegion,numpy.array([.8+random.random()*.2,.7+random.random()*.2,.5+random.random()*.2]))
 
     return diploCanvas
 
