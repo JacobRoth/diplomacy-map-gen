@@ -1,4 +1,6 @@
 import random,numpy
+
+import simplex 
 import matplotlib.pyplot as plt
 
 def randomPointWithin(boolArray):
@@ -39,13 +41,19 @@ def simpleColorfulImage(listOfBoolArrays):
     rgbshape = (listOfBoolArrays[0].shape[0],listOfBoolArrays[0].shape[1],3) #same height and width as the bool but it has a color dimension.
     compositeImage = numpy.zeros(rgbshape)  
     for boolArray in listOfBoolArrays:
-        compositeImage += colorRegion(boolArray,numpy.array([random.randint(0,255),random.randint(0,255),random.randint(0,255)]))
+        compositeImage += colorRegion(boolArray,numpy.array([random.randint(0,1.0),random.randint(0,1.0),random.randint(0,1.0)]))
     return compositeImage
 
 def colorRegion(boolArray,colorArray):
     '''takes a boolean array and returns a color image of it in color colorArray'''
     colorImage = numpy.dstack((boolArray,boolArray,boolArray))
     return colorImage*colorArray 
+
+def randomColorShift(colorArray,shiftRange=(0.5,1)):
+    '''takes an RGB colorArray and multiplies everything in it by a random constant in the range shiftRange'''
+    shiftConst = shiftRange[0]+random.random()*(shiftRange[1]-shiftRange[0])
+    return colorArray*shiftConst
+
 
 def diploMap(shape, sealevel, mountainlevel, numPlayerCountries, totalCountries, regionsPerCountry):
     '''render an image of a diplomacy map. Note that totalCountries is the number of big country-sized spaces on the map, including water and mountain. Can generate for up to 7 players right now'''
@@ -67,20 +75,38 @@ def diploMap(shape, sealevel, mountainlevel, numPlayerCountries, totalCountries,
     #now we draw the players' lands into the canvas 
     for iii in range(len(playerRegions)): 
         for region in playerRegions[iii]: # iterate over this player's regions
-            diploCanvas += colorRegion(region,possibleColors[iii]*random.random())
+            diploCanvas += colorRegion(region,randomColorShift(possibleColors[iii]))
+    del playerRegions # we've already drawn these things in, so we free up memory.
     
     
-    #now we make neutral lands, including mountains and seas
+    #now we make neutral lands, including mountains and seas. This will require perlin simplex noise.
     seaRegions = []
     neutralLandRegions = []
     mountainRegions = []
-    neutralRegions = []
+    noiseGen = simplex.SimplexNoise(period=max(shape[0],shape[1]))
+    #neutralRegions = []
     for bigSpace in neutralBigSpaces: 
-        neutralRegions.extend(voronoiSegmentation(bigSpace,totalCountries))
-
-    #draw neutral lands/mountain/seas on canvas.
-    for neutralRegion in neutralRegions:
-        diploCanvas += colorRegion(neutralRegion,numpy.array([.8+random.random()*.2,.7+random.random()*.2,.5+random.random()*.2]))
+        newNeutralRegions = voronoiSegmentation(bigSpace,totalCountries)
+        for region in newNeutralRegions:
+            rndrow,rndcol = randomPointWithin(region)
+            elevation = noiseGen.noise2(rndrow/shape[0],rndcol/shape[1]) # float division
+            if elevation < sealevel:
+                seaRegions.append(region)
+            elif elevation < mountainlevel:
+                neutralLandRegions.append(region)
+            else:
+                mountainRegions.append(region)
+    #now we draw these things in.
+    for region in seaRegions:
+        diploCanvas += colorRegion(region,randomColorShift(numpy.array([0,0,1.0])))
+    for region in neutralLandRegions:
+        diploCanvas += colorRegion(region,randomColorShift(numpy.array([1.0,0.8,0.6])))
+    for region in mountainRegions:
+        diploCanvas += colorRegion(region,numpy.array([0,0,0]))
 
     return diploCanvas
 
+def test():
+    im = diploMap((128,128),0,0.8,7,10,4)
+    plt.imshow(im)
+    plt.show()
