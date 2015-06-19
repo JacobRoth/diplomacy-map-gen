@@ -1,5 +1,6 @@
-import random,numpy
-import simplex 
+import random
+import numpy
+import simplex  # simplex perlin noise I found on the internet.
 import matplotlib.pyplot as plt
 
 def randomPointWithin(boolArray):
