@@ -1,5 +1,4 @@
 import random,numpy
-
 import simplex 
 import matplotlib.pyplot as plt
 
