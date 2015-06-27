@@ -49,10 +49,14 @@ def colorRegion(boolArray,colorArray):
     colorImage = numpy.dstack((boolArray,boolArray,boolArray))
     return colorImage*colorArray 
 
-def randomColorShift(colorArray,shiftRange=(0.5,1)):
-    '''takes an RGB colorArray and multiplies everything in it by a random constant in the range shiftRange'''
-    shiftConst = shiftRange[0]+random.random()*(shiftRange[1]-shiftRange[0])
-    return colorArray*shiftConst
+def randomInRange(rangetuple):
+    return rangetuple[0]+random.random()*(rangetuple[1]-rangetuple[0])
+
+def randomColorShift(colorArray,shiftRange=(0.5,1),distortionFactor=0.1):
+    '''takes an RGB colorArray and multiplies everything in it by a random constant in the range shiftRange. random constant is slightly different for each item according to distortionFactor, i.e. the total multiplication is within randomConstInShiftRange +/- distortionFactor'''
+    correctedShiftRange = (shiftRange[0]+distortionFactor,shiftRange[1]-distortionFactor) # prevents random factors produced in the return line from going outside shift range.
+    shiftConst = randomInRange(correctedShiftRange) 
+    return numpy.array(list(map(lambda element: element*randomInRange((shiftConst-distortionFactor,shiftConst+distortionFactor)) ,  colorArray)))
 
 
 def diploMap(shape, sealevel, mountainlevel, numPlayerCountries, totalCountries, regionsPerCountry):
@@ -103,6 +107,61 @@ def diploMap(shape, sealevel, mountainlevel, numPlayerCountries, totalCountries,
         diploCanvas += colorRegion(region,randomColorShift(numpy.array([1.0,0.8,0.6])))
     for region in mountainRegions:
         diploCanvas += colorRegion(region,numpy.array([0,0,0]))
+
+    return diploCanvas
+
+def diploMap2(shape, sealevel, mountainlevel, numPlayerCountries, totalCountries, regionsPerCountry):
+    '''same functionality as diploMap, but a different algorithm. This one generates terrain first, and allocates the player countries out of land only. It should look more organic.'''
+
+    assert(numPlayerCountries <= 7)
+    assert(numPlayerCountries <= totalCountries)
+    possibleColors = [numpy.array([1.0,0,0]),numpy.array([0,1.0,0]),numpy.array([1.0,1.0,0]),numpy.array([0.6,0.0,1.0]),numpy.array([1.0,0,1.0]),numpy.array([1.0,1.0,1.0]),numpy.array([1.0,0.5,0])] 
+    diploMap = numpy.full(shape,True,bool) # numpy array representing the whole space.
+
+    # ok now we start the numerical heavy lifting. Let's make the geography first:
+
+    isEnoughLand = False 
+    while not isEnoughLand:
+        bigSpaces = voronoiSegmentation(diploMap,totalCountries) # land regions, mountains, and seas.
+        seaSpaces = []
+        landSpaces = []
+        mountainSpaces = []
+        noiseGen  = simplex.SimplexNoise(period=max(shape[0],shape[1]))
+        for bigSpace in bigSpaces: 
+            rndrow,rndcol = randomPointWithin(bigSpace)
+            elevation = noiseGen.noise2(2*rndrow/shape[0],2*rndcol/shape[1]) # float division
+            if elevation < sealevel:
+                seaSpaces.append(bigSpace)
+            elif elevation < mountainlevel:
+                landSpaces.append(bigSpace)
+            else:
+                mountainSpaces.append(bigSpace)
+            # let's first confirm that there is enough land for all players
+        isEnoughLand = (len(landSpaces) >= numPlayerCountries)
+        if not isEnoughLand:
+            print("There weren't enough land spaces to allocate all players. Regenerating geography...")
+
+    # now we need to decide which of these are players.
+    playerCountries = landSpaces[:numPlayerCountries]
+    neutralLandSpaces = landSpaces[numPlayerCountries:]
+
+    # now all the regions are made, and we have to segment the land.
+    neutralLandRegions = sum([ voronoiSegmentation(space,regionsPerCountry) for space in neutralLandSpaces ],[])
+    playerRegions = [ voronoiSegmentation(country,regionsPerCountry) for country in playerCountries ]
+
+
+
+    #now we draw everything in
+    diploCanvas = numpy.zeros((shape[0],shape[1],3)) # create a color numpy array image that is the blank canvas we will draw everything on.
+    for space in seaSpaces:
+        diploCanvas += colorRegion(space,randomColorShift(numpy.array([0,0,1.0])))
+    for region in neutralLandRegions:
+        diploCanvas += colorRegion(region,randomColorShift(numpy.array([1.0,0.8,0.6])))
+    for space in mountainSpaces:
+        diploCanvas += colorRegion(space,numpy.array([0,0,0]))
+    for iii in range(len(playerRegions)):
+        for region in playerRegions[iii]:
+            diploCanvas += colorRegion(region,randomColorShift(possibleColors[iii]))
 
     return diploCanvas
 
