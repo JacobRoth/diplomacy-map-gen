@@ -18,6 +18,18 @@ def colorRegion(boolArray,colorArray):
     colorImage = numpy.dstack((boolArray,boolArray,boolArray))
     return colorImage*colorArray 
 
+def stripeRegion(boolArray,colorArray1,colorArray2,stripeWidth=5,offset=0):
+    stripeArray = numpy.fromfunction(lambda x,y: ((x+y+offset)//stripeWidth)%2==0, boolArray.shape) # produces an array of booleans in a stripe
+    notStripeArray = numpy.vectorize(lambda boolean: not boolean)(stripeArray) # create a second array that is the opposite of the other 
+    
+    boolArray1 = stripeArray*boolArray # multiplying two same-shaped boolean arrays applies the "and" operation between analogous elements
+    boolArray2 = notStripeArray*boolArray
+
+    colorImage1 = numpy.dstack((boolArray1,boolArray1,boolArray1))*colorArray1 # now create color images of the stripes for colors 1
+    colorImage2 = numpy.dstack((boolArray2,boolArray2,boolArray2))*colorArray2 # and 2
+
+    return colorImage1+colorImage2
+
 def randomInRange(rangetuple):
     return rangetuple[0]+random.random()*(rangetuple[1]-rangetuple[0])
 
@@ -128,14 +140,14 @@ def diploMap2(shape, sealevel, mountainlevel, numPlayerCountries, totalCountries
         diploCanvas += colorRegion(region,randomColorShift(numpy.array([1.0,0.8,0.6])))
     for space in mountainSpaces:
         diploCanvas += colorRegion(space,numpy.array([0,0,0]))
-    for iii in range(len(playerRegions)):
+    for iii in range(len(playerRegions)): # iii is player number
         for region in playerRegions[iii]:
-            diploCanvas += colorRegion(region,randomColorShift(possibleColors[iii]))
+            diploCanvas += stripeRegion(region,randomColorShift(possibleColors[iii]),numpy.array([1,1,1]),stripeWidth=15,offset=random.randint(0,15)) # draw the region with black stripes on it.
 
-    plt.imshow(diploCanvas) # draw the world map, then we will draw the supply centers on top of it. TODO - make it so that it draw small circles on the image.
-    for iii in range(len(playerRegions)):
-        for region in playerRegions[iii]:
-            row, col = randomPointWithin(region)
-            plt.plot(col, row,'wo')
+#    plt.imshow(diploCanvas) # draw the world map, then we will draw the supply centers on top of it. TODO - make it so that it draw small circles on the image.
+#    for iii in range(len(playerRegions)):
+#        for region in playerRegions[iii]:
+#            row, col = randomPointWithin(region)
+#            plt.plot(col, row,'wo')
 
-    #return diploCanvas
+    return diploCanvas
