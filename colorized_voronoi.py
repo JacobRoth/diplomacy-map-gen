@@ -86,6 +86,7 @@ def voronoi_finite_polygons_2d(vor, radius=None):
     return new_regions, np.asarray(new_vertices)
 
 def __main__():
+    '''test code'''
     # make up data points
     #np.random.seed(1234)
     points = np.random.rand(3, 2)
@@ -94,7 +95,7 @@ def __main__():
     vor = Voronoi(points)
 
     # plot
-    regions, vertices = voronoi_finite_polygons_2d(vor)
+    regions, vertices = voronoi_finite_polygons_2d(vor,radius=100000)
     print("--")
     print(regions)
     print("--")
@@ -110,7 +111,7 @@ def __main__():
     plt.xlim(vor.min_bound[0] - 0.1, vor.max_bound[0] + 0.1)
     plt.ylim(vor.min_bound[1] - 0.1, vor.max_bound[1] + 0.1)
 
-    plt.savefig('voro.png')
+    #plt.savefig('voro.png')
     plt.show()
 
 if __name__=="__main__":
