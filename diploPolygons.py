@@ -113,7 +113,7 @@ class DiploMap:
     def render(self,filename):
         polygonsToBeRendered = self.seaSpaces+self.mountainSpaces+self.neutralLandRegions+sum(self.playerRegions,[])
         fill_colors=[p.fill_color for p in polygonsToBeRendered]
-        supplyCenterLabels = ['*' if p.isSupplyCenter else '' for p in polygonsToBeRendered]
+        supplyCenterLabels = ['.' if p.isSupplyCenter else '' for p in polygonsToBeRendered]
 
         Polygon.IO.writeSVG(filename,[Polygon.Polygon(p[0]) for p in polygonsToBeRendered],fill_color=fill_colors,labels=supplyCenterLabels,labels_centered=True) # what that second argument is doing is iteration over all the colorful polygons and making vanilla polygons out of them (The writeSVG function can only handle vanilla polygons)
 
