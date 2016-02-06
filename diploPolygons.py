@@ -6,6 +6,7 @@ import numpy
 
 from simplex import SimplexNoise 
 from colorized_voronoi import voronoi_finite_polygons_2d
+from lloydRelaxation import lloydRelaxation
 
 # diplomacy map generator program.
 # Daniel Sonner
@@ -40,7 +41,8 @@ def randomPointWithin(polygon):
 def voronoiSegmentation(polygon,npoints):
     ''' returns a list of polygons that segment polygon into npoints regions. npoints must be an integer greater than two.'''
     assert(npoints>2)
-    points = [randomPointWithin(polygon) for _ in range(npoints) ]
+    trulyRandomPoints = [randomPointWithin(polygon) for _ in range(npoints) ]
+    points = lloydRelaxation(trulyRandomPoints,2,boundingPolygon=polygon) # the ones we actually use, less random
     voronoiDiagram = scipy.spatial.Voronoi(points)
     regions,vertices = voronoi_finite_polygons_2d(voronoiDiagram,radius=FAR) # read the main function in the file colorized_voronoi for an idea of what's going on here 
     bigPolygons = [ DiplomacyPolygon([ vertices[point] for point in region]) for region in regions] # okay, nested listcomp. So what happens here is each region returned from voronoi_finite_polygons_2d becomes a Polygon library polygon. This polygon is constructed from the appropriate vertices of the voronoi diagram for said region. (A region is represented as something like [2,0,5], meaning it is a polynomial constructed from voronoi vertices 2, 0, and 5, in that order)
