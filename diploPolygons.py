@@ -3,6 +3,7 @@ import Polygon.IO
 import scipy.spatial
 import random
 import numpy
+import os
 
 from simplex import SimplexNoise 
 from colorized_voronoi import voronoi_finite_polygons_2d
@@ -51,7 +52,7 @@ def voronoiSegmentation(polygon,npoints):
 
 
 class DiploMap:
-    def __init__(self,widthToHeightRatio, sealevel, mountainlevel, numPlayerCountries, totalCountries, regionsPerCountry, neutralSupplyProportion, startingSupplyCentersPerPlayer):
+    def __init__(self,widthToHeightRatio, sealevel, mountainlevel, numPlayerCountries, totalCountries, regionsPerPlayerCountry, regionsPerNeutralCountry, neutralSupplyProportion, startingSupplyCentersPerPlayer):
         '''Generate a diplomacy map. This algorithm generates terrain first, and allocates the player countries out of land only. It should look more organic.'''
 
         diploMap = DiplomacyPolygon([ (0,0), (widthToHeightRatio,0),(widthToHeightRatio,1),(0,1) ]) # this is the game board
@@ -66,7 +67,7 @@ class DiploMap:
             seaSpaces = []
             landSpaces = []
             mountainSpaces = []
-            noiseGen  = SimplexNoise(period=widthToHeightRatio)
+            noiseGen  = SimplexNoise(period=int(widthToHeightRatio))
             for bigSpace in bigSpaces: 
                 rndx,rndy = randomPointWithin(bigSpace)
                 elevation = noiseGen.noise2(2*rndx/widthToHeightRatio,2*rndy) # float division
@@ -87,8 +88,8 @@ class DiploMap:
         neutralLandSpaces = landSpaces[numPlayerCountries:]
 
         # now all the regions are made, and we have to segment the land.
-        self.neutralLandRegions = sum([ voronoiSegmentation(space,regionsPerCountry) for space in neutralLandSpaces ],[])
-        self.playerRegions = [ voronoiSegmentation(country,regionsPerCountry) for country in playerCountries ]
+        self.neutralLandRegions = sum([ voronoiSegmentation(space,regionsPerNeutralCountry) for space in neutralLandSpaces ],[])
+        self.playerRegions = [ voronoiSegmentation(country,regionsPerPlayerCountry) for country in playerCountries ]
         # also save the seas and mountains to self memory
         self.seaSpaces = seaSpaces
         self.mountainSpaces = mountainSpaces
@@ -125,3 +126,18 @@ class DiploMap:
 
         Polygon.IO.writeSVG(filename,[Polygon.Polygon(p[0]) for p in polygonsToBeRendered],fill_color=fill_colors,labels=supplyCenterLabels,labels_centered=True) # what that second argument is doing is iteration over all the colorful polygons and making vanilla polygons out of them (The writeSVG function can only handle vanilla polygons)
 
+def main():
+    while True:
+        d = DiploMap(4/3,0.05,.95,15,70,6,3,12/14,3)
+        d.render("test.svg")
+        os.system("inkview test.svg")
+        i = input(">")
+        if i == "":
+            pass
+        elif i=="q":
+            break
+        else:
+            d.render(i)
+
+if __name__=="__main__":
+    main()
