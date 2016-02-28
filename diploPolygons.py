@@ -4,6 +4,7 @@ import scipy.spatial
 import random
 import numpy
 import os
+import itertools
 
 from simplex import SimplexNoise 
 from colorized_voronoi import voronoi_finite_polygons_2d
@@ -17,7 +18,7 @@ from lloydRelaxation import lloydRelaxation
 
 
 
-FAR = 100 # ok, this merits a little explanation. Voronoi diagrams have several points we need to make use of that are located infinitely far away from the diagram in some direction. The function voronoi_finite_polygons puts these points some finite distance away from the diagram, so we use FAR units. A typical diplomacy map in this program will be 1 or maybe 2 units wide, so 100 units is very far away.
+FAR = 1000 # ok, this merits a little explanation. Voronoi diagrams have several points we need to make use of that are located infinitely far away from the diagram in some direction. The function voronoi_finite_polygons puts these points some finite distance away from the diagram, so we use FAR units. A typical diplomacy map in this program will be 1 or maybe 2 units wide, so 100 units is very far away.
 
 class DiplomacyPolygon(Polygon.Polygon):
     '''Polygon that has fill and stroke color attributes and a flag for being a supply center. We'll use this throughout the program.'''
@@ -26,6 +27,7 @@ class DiplomacyPolygon(Polygon.Polygon):
         self.fill_color = (255,255,255) # defaults to white fill,
         self.stroke_color= (0,0,0) # black lines
         self.isSupplyCenter = False
+        self.name = "" # a name that will be printed on the board. Does not include supply center information.
 
 def randomInRange(lower,upper):
     return lower+random.random()*(upper-lower)
@@ -54,6 +56,7 @@ def voronoiSegmentation(polygon,npoints):
 class DiploMap:
     def __init__(self,widthToHeightRatio, sealevel, mountainlevel, numPlayerCountries, totalCountries, regionsPerPlayerCountry, regionsPerNeutralCountry, neutralSupplyProportion, startingSupplyCentersPerPlayer):
         '''Generate a diplomacy map. This algorithm generates terrain first, and allocates the player countries out of land only. It should look more organic.'''
+        self.widthToHeightRatio = widthToHeightRatio # remember this number for when we need to render.
 
         diploMap = DiplomacyPolygon([ (0,0), (widthToHeightRatio,0),(widthToHeightRatio,1),(0,1) ]) # this is the game board
 
@@ -96,9 +99,26 @@ class DiploMap:
 
         #ok, now the map itself is created and we need to handle some random odds and ends. Namely, we need to give things colors, and make some things be supply centers.
 
-        playerColors = [ (255,0,0),(255,127,0),(255,255,0),(0,255,0),(150,0,255) # rainbow, skipping over blue because that's the sea 
-                        ,(255,0,255),(0,255,255),(150,150,150)] # magenta,cyan, and gray
-
+        playerColors = [ 
+                  (255,0,0) # red
+                , (125,0,0) # burgundy
+                , (255,255,0) # yellow
+                , (125,125,0) # olive
+                , (0,255,0) # lime
+                , (0,125,0) # dark green
+                , (0,255,255) # cyan
+                , (0,125,125) # teal
+                , (0,0,255) # blue
+                , (0,0,125) # navy
+                , (255,0,255) # magenta
+                , (125,0,125) # purple
+                , (181,166,66) # salmon
+                , (255,165,0) # orange
+                , (139,69,19) # brown
+                , (200,200,200) # light grey
+                , (120,120,120) # dark grey
+                , (230,230,250) # lavender
+        ]
         while numPlayerCountries > len(playerColors): # awkward, we don't have enough colors. 
             playerColors.append( (random.randint(0,255),random.randint(0,255),random.randint(0,255)) ) # Let's just make some up. This won't be as clear as using the defaults (could end up with a color that is too sea-like for example) but it will work.
         for iii in range(numPlayerCountries):
@@ -111,24 +131,39 @@ class DiploMap:
                     region.isSupplyCenter = True
 
         for seaSpace in self.seaSpaces:
-            seaSpace.fill_color = (0,0,255) # deep blue sea
+            seaSpace.fill_color = (255,255,255) # blank (to save ink)
         for mountainSpace in self.mountainSpaces:
-            mountainSpace.fill_color = (255,255,255) # snow-capped mountains 
+            mountainSpace.fill_color = (0,0,0) # jet black 
         for neutralLandRegion in self.neutralLandRegions:
             neutralLandRegion.fill_color = (255,200,150) # like they are on the diplomacy board.
             if random.random() <= neutralSupplyProportion:
                 neutralLandRegion.isSupplyCenter = True
 
-    def render(self,filename):
+        # having generated all the stuff, now we should give them names.
+        namesUsedSoFar = []
+        def makeRandomName():
+            ''' helper function '''
+            return chr(random.randint(65,90))+chr(random.randint(65,90))+chr(random.randint(65,90))
+
+        for dp in self.seaSpaces+self.mountainSpaces+self.neutralLandRegions+list(itertools.chain.from_iterable(self.playerRegions)): #iterate through ALL the polygons. Also check out that itertools thing, it takes a list of lists and flattens it.
+            isBad = True
+            while isBad:
+                rndName = makeRandomName()
+                isBad = (rndName in namesUsedSoFar)
+            namesUsedSoFar.append(rndName)
+            dp.name = rndName
+
+    def render(self,filename,rendersize=1000):
+
         polygonsToBeRendered = self.seaSpaces+self.mountainSpaces+self.neutralLandRegions+sum(self.playerRegions,[])
         fill_colors=[p.fill_color for p in polygonsToBeRendered]
-        supplyCenterLabels = ['.' if p.isSupplyCenter else '' for p in polygonsToBeRendered]
+        supplyCenterLabels = [p.name+'*' if p.isSupplyCenter else p.name for p in polygonsToBeRendered]
 
-        Polygon.IO.writeSVG(filename,[Polygon.Polygon(p[0]) for p in polygonsToBeRendered],fill_color=fill_colors,labels=supplyCenterLabels,labels_centered=True) # what that second argument is doing is iteration over all the colorful polygons and making vanilla polygons out of them (The writeSVG function can only handle vanilla polygons)
+        Polygon.IO.writeSVG(filename,[Polygon.Polygon(p[0]) for p in polygonsToBeRendered],fill_color=fill_colors,labels=supplyCenterLabels,labels_centered=True, height=rendersize, width=rendersize*self.widthToHeightRatio) # what that second argument is doing is iteration over all the colorful polygons and making vanilla polygons out of them (The writeSVG function can only handle vanilla polygons)
 
 def main():
     while True:
-        d = DiploMap(4/3,0.05,.95,15,70,6,3,12/14,3)
+        d = DiploMap(4/3,0.05,.95,17,90,6,3,12/14,3)
         d.render("test.svg")
         os.system("inkview test.svg")
         i = input(">")
